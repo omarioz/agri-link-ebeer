@@ -178,51 +178,51 @@ export const ListingsPage: React.FC = () => {
             <TabsTrigger value="paused">Paused</TabsTrigger>
             <TabsTrigger value="sold">Sold</TabsTrigger>
           </TabsList>
-        </Tabs>
 
-        {/* Bulk Actions */}
-        {selectedListings.length > 0 && (
-          <div className="mb-4 p-3 bg-muted rounded-lg flex items-center justify-between">
-            <span className="text-sm font-medium">
-              {selectedListings.length} selected
-            </span>
-            <div className="flex space-x-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleBulkAction('pause')}
-              >
-                Pause
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleBulkAction('sold')}
-              >
-                Mark Sold
-              </Button>
+          {/* Bulk Actions */}
+          {selectedListings.length > 0 && (
+            <div className="mb-4 p-3 bg-muted rounded-lg flex items-center justify-between">
+              <span className="text-sm font-medium">
+                {selectedListings.length} selected
+              </span>
+              <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleBulkAction('pause')}
+                >
+                  Pause
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleBulkAction('sold')}
+                >
+                  Mark Sold
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* Listings */}
-        <TabsContent value={activeTab} className="space-y-3">
-          {filteredListings.length > 0 ? (
-            filteredListings.map(renderListingCard)
-          ) : (
-            <EmptyState
-              illustration={<ShoppingBasket className="w-12 h-12" />}
-              title="No listings found"
-              description={
-                activeTab === 'all'
-                  ? "Add your first listing to start selling"
-                  : `No ${activeTab} listings`
-              }
-              cta={activeTab === 'all' ? "Add Listing" : undefined}
-              onAction={() => setShowNewListingDialog(true)}
-            />
           )}
-        </TabsContent>
+
+          {/* Listings */}
+          <TabsContent value={activeTab} className="space-y-3">
+            {filteredListings.length > 0 ? (
+              filteredListings.map(renderListingCard)
+            ) : (
+              <EmptyState
+                illustration={<ShoppingBasket className="w-12 h-12" />}
+                title="No listings found"
+                description={
+                  activeTab === 'all'
+                    ? "Add your first listing to start selling"
+                    : `No ${activeTab} listings`
+                }
+                cta={activeTab === 'all' ? "Add Listing" : undefined}
+                onAction={() => setShowNewListingDialog(true)}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Floating Action Button */}
         <Dialog open={showNewListingDialog} onOpenChange={setShowNewListingDialog}>
