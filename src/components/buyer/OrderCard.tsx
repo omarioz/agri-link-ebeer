@@ -63,7 +63,10 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         <img
           src={order.thumbnail}
           alt={order.produceName}
-          className="w-16 h-16 rounded-lg object-cover"
+          className="w-16 h-16 rounded-lg object-cover bg-muted"
+          onError={(e) => {
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=64&h=64&fit=crop';
+          }}
         />
 
         {/* Order Details */}
