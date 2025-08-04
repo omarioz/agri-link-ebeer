@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useUsers, useUpdateUser } from '@/hooks/useUsers';
+import { toast } from 'sonner';
 
 interface User {
   id: string;
@@ -66,9 +68,11 @@ export const UsersPage: React.FC = () => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
-  const [isLoading, setIsLoading] = useState(false);
 
-  const filteredUsers = mockUsers.filter(user => {
+  const { data: users = [], isLoading } = useUsers();
+  const updateUser = useUpdateUser();
+
+  const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          user.phone.includes(searchQuery);
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
@@ -84,9 +88,22 @@ export const UsersPage: React.FC = () => {
     overscan: 5,
   });
 
-  const handleUserAction = (userId: string, action: 'suspend' | 'reactivate' | 'reset-password') => {
-    console.log(`${action} user ${userId}`);
-    // TODO: Implement user actions
+  const handleUserAction = async (userId: string, action: 'suspend' | 'reactivate' | 'reset-password') => {
+    try {
+      if (action === 'suspend') {
+        await updateUser.mutateAsync({ id: userId, updates: { status: 'paused' } });
+        toast.success('User suspended successfully');
+      } else if (action === 'reactivate') {
+        await updateUser.mutateAsync({ id: userId, updates: { status: 'active' } });
+        toast.success('User reactivated successfully');
+      } else {
+        // Reset password would require admin functionality
+        toast.info('Password reset functionality not implemented');
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast.error('Failed to update user');
+    }
   };
 
   const exportCSV = () => {

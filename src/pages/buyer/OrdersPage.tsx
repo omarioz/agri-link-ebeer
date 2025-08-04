@@ -11,6 +11,7 @@ import { TrackDrawer } from '@/components/buyer/TrackDrawer';
 import { InvoiceModal } from '@/components/buyer/InvoiceModal';
 import { useTranslation } from 'react-i18next';
 import { useOffline } from '@/hooks/useOffline';
+import { useOrders } from '@/hooks/useOrders';
 
 interface Order {
   id: string;
@@ -33,42 +34,6 @@ interface Order {
   };
 }
 
-// Mock data
-const mockOrders: Order[] = [
-  {
-    id: 'ORD-001',
-    produceName: 'Organic Tomatoes',
-    thumbnail: 'https://images.unsplash.com/photo-1546470427-e5b89611f433?w=64&h=64&fit=crop',
-    quantity: 5,
-    pricePerKg: 2.50,
-    total: 12.50,
-    farmer: 'Ahmed Hassan',
-    region: 'Mogadishu',
-    status: 'in-transit',
-    type: 'active',
-    eta: '2 hours',
-    courierName: 'Mohamed Ali',
-    courierPhone: '+252611234567',
-    trackingData: {
-      farmLocation: [2.0469, 45.3182],
-      buyerLocation: [2.0371, 45.3438],
-      courierLocation: [2.0420, 45.3310]
-    }
-  },
-  {
-    id: 'ORD-002',
-    produceName: 'Fresh Bananas',
-    thumbnail: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=64&h=64&fit=crop',
-    quantity: 10,
-    pricePerKg: 1.80,
-    total: 18.00,
-    farmer: 'Fatima Omar',
-    region: 'Kismayo',
-    status: 'delivered',
-    type: 'completed'
-  }
-];
-
 export const OrdersPage: React.FC = () => {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -78,17 +43,9 @@ export const OrdersPage: React.FC = () => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const { isOffline } = useOffline();
   
-  const activeTab = searchParams.get('status') || 'active';
+  const activeTab = (searchParams.get('status') || 'active') as 'active' | 'completed';
 
-  const { data: orders, isLoading, error } = useQuery({
-    queryKey: ['orders', activeTab],
-    queryFn: async () => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return mockOrders.filter(order => order.type === activeTab);
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const { data: orders = [], isLoading, error } = useOrders(activeTab);
 
   const filteredOrders = orders?.filter(order =>
     order.produceName.toLowerCase().includes(searchQuery.toLowerCase()) ||

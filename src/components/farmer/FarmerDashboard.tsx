@@ -1,6 +1,10 @@
 import React from 'react';
 import { TrendingUp, Package, DollarSign, Bell } from 'lucide-react';
 import { AppHeader } from '@/components/layout/AppHeader';
+import { Skeleton } from '@/components/common/SkeletonLoader';
+import { useFarmerAnalytics } from '@/hooks/useAnalytics';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
 const MOCK_STATS = {
@@ -17,6 +21,17 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 export const FarmerDashboard: React.FC = () => {
+  const { data: analytics, isLoading: analyticsLoading } = useFarmerAnalytics();
+  
+  const { data: notifications = [], isLoading: notificationsLoading } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('notifications');
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 2 * 60 * 1000,
+  });
   return (
     <div className="min-h-screen bg-background">
       <AppHeader showLogo />
@@ -41,18 +56,26 @@ export const FarmerDashboard: React.FC = () => {
             <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-2">
               <DollarSign className="w-5 h-5 text-success" />
             </div>
-            <p className="text-2xl font-bold text-foreground">${MOCK_STATS.totalEarnings}</p>
+            {analyticsLoading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <p className="text-2xl font-bold text-foreground">${analytics?.totalEarnings?.toFixed(2) || '0.00'}</p>
+            )}
             <p className="text-xs text-muted-foreground">Total Earnings</p>
-            <p className="text-xs text-success">+{MOCK_STATS.monthlyGrowth}% this month</p>
+            <p className="text-xs text-success">+{analytics?.monthlyGrowth || 0}% this month</p>
           </div>
           
           <div className="card-elevated text-center">
             <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2">
               <Package className="w-5 h-5 text-primary" />
             </div>
-            <p className="text-2xl font-bold text-foreground">{MOCK_STATS.activeListing}</p>
+            {analyticsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <p className="text-2xl font-bold text-foreground">{analytics?.activeListing || 0}</p>
+            )}
             <p className="text-xs text-muted-foreground">Active Listings</p>
-            <p className="text-xs text-warning">{MOCK_STATS.pendingOrders} pending orders</p>
+            <p className="text-xs text-warning">{analytics?.pendingOrders || 0} pending orders</p>
           </div>
         </div>
 
@@ -83,21 +106,33 @@ export const FarmerDashboard: React.FC = () => {
           </div>
           
           <div className="space-y-3">
-            {MOCK_NOTIFICATIONS.map((notification) => (
-              <div key={notification.id} className="card-elevated">
-                <div className="flex items-start space-x-3">
-                  <div className={cn(
-                    "w-2 h-2 rounded-full mt-2",
-                    notification.type === 'bid' ? "bg-success" :
-                    notification.type === 'order' ? "bg-warning" : "bg-primary"
-                  )} />
-                  <div className="flex-1">
-                    <p className="text-sm text-foreground">{notification.message}</p>
-                    <p className="text-xs text-muted-foreground">{notification.time}</p>
+            {notificationsLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="card-elevated">
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ))
+            ) : notifications.length > 0 ? (
+              notifications.map((notification: any) => (
+                <div key={notification.id} className="card-elevated">
+                  <div className="flex items-start space-x-3">
+                    <div className={cn(
+                      "w-2 h-2 rounded-full mt-2",
+                      notification.type === 'bid' ? "bg-success" :
+                      notification.type === 'order' ? "bg-warning" : "bg-primary"
+                    )} />
+                    <div className="flex-1">
+                      <p className="text-sm text-foreground">{notification.payload?.message || 'New notification'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(notification.created_at).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">No notifications</p>
+            )}
           </div>
         </div>
 

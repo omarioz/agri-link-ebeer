@@ -3,6 +3,7 @@ import { Header } from '@/components/common/Header';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { EmptyState } from '@/components/common/EmptyState';
 import { StatusChip } from '@/components/common/StatusChip';
+import { Skeleton } from '@/components/common/SkeletonLoader';
 import { useTranslation } from 'react-i18next';
 import { Plus, MoreVertical, ShoppingBasket, Edit, Pause, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { useProducts, useCreateProduct, useUpdateProduct } from '@/hooks/useProducts';
+import { toast } from 'sonner';
 
 interface Listing {
   id: string;
@@ -26,39 +29,6 @@ interface Listing {
   organic: boolean;
 }
 
-const mockListings: Listing[] = [
-  {
-    id: '1',
-    name: 'Fresh Tomatoes',
-    image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop',
-    quantity: '50kg',
-    price: '$2.50/kg',
-    status: 'active',
-    harvestDate: '2024-08-03',
-    organic: true
-  },
-  {
-    id: '2',
-    name: 'Red Onions',
-    image: 'https://images.unsplash.com/photo-1465379944081-7f47de8d74ac?w=100&h=100&fit=crop',
-    quantity: '30kg',
-    price: '$1.80/kg',
-    status: 'paused',
-    harvestDate: '2024-08-02',
-    organic: false
-  },
-  {
-    id: '3',
-    name: 'Sweet Bananas',
-    image: 'https://images.unsplash.com/photo-1501286353178-1ec881214838?w=100&h=100&fit=crop',
-    quantity: '40kg',
-    price: '$3.00/kg',
-    status: 'sold',
-    harvestDate: '2024-08-01',
-    organic: true
-  }
-];
-
 export const ListingsPage: React.FC = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('all');
@@ -70,10 +40,27 @@ export const ListingsPage: React.FC = () => {
     price: '',
     harvestDate: '',
     organic: false,
-    description: ''
+    description: '',
+    category: ''
   });
 
-  const filteredListings = mockListings.filter(listing => {
+  const { data: products = [], isLoading } = useProducts();
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+
+  // Convert products to listings format
+  const listings = products.map(product => ({
+    id: product.id,
+    name: product.name,
+    image: product.image,
+    quantity: `${product.quantity}${product.unit}`,
+    price: `$${product.price}/${product.unit}`,
+    status: product.status as 'active' | 'paused' | 'sold',
+    harvestDate: product.harvestDate,
+    organic: product.organic
+  }));
+
+  const filteredListings = listings.filter(listing => {
     if (activeTab === 'all') return true;
     return listing.status === activeTab;
   });
@@ -89,21 +76,52 @@ export const ListingsPage: React.FC = () => {
     setSelectedListings([]);
   };
 
-  const handleListingAction = (id: string, action: 'edit' | 'pause' | 'sold') => {
-    console.log(`${action} listing ${id}`);
+  const handleListingAction = async (id: string, action: 'edit' | 'pause' | 'sold') => {
+    try {
+      let updates: any = {};
+      
+      if (action === 'pause') {
+        const listing = listings.find(l => l.id === id);
+        updates.status = listing?.status === 'active' ? 'paused' : 'active';
+      } else if (action === 'sold') {
+        updates.status = 'sold';
+      }
+      
+      await updateProduct.mutateAsync({ id, ...updates });
+      toast.success(`Listing ${action === 'pause' ? 'updated' : action} successfully`);
+    } catch (error) {
+      console.error('Error updating listing:', error);
+      toast.error('Failed to update listing');
+    }
   };
 
-  const handleCreateListing = () => {
-    console.log('Creating listing:', newListing);
-    setShowNewListingDialog(false);
-    setNewListing({
-      name: '',
-      quantity: '',
-      price: '',
-      harvestDate: '',
-      organic: false,
-      description: ''
-    });
+  const handleCreateListing = async () => {
+    try {
+      await createProduct.mutateAsync({
+        title: newListing.name,
+        description: newListing.description,
+        qty_kg: parseInt(newListing.quantity),
+        min_price: parseFloat(newListing.price),
+        category: newListing.category,
+        harvest_date: newListing.harvestDate,
+        organic: newListing.organic
+      });
+      
+      toast.success('Listing created successfully!');
+      setShowNewListingDialog(false);
+      setNewListing({
+        name: '',
+        quantity: '',
+        price: '',
+        harvestDate: '',
+        organic: false,
+        description: '',
+        category: ''
+      });
+    } catch (error) {
+      console.error('Error creating listing:', error);
+      toast.error('Failed to create listing');
+    }
   };
 
   const renderListingCard = (listing: Listing) => (
@@ -206,7 +224,13 @@ export const ListingsPage: React.FC = () => {
 
           {/* Listings */}
           <TabsContent value={activeTab} className="space-y-3">
-            {filteredListings.length > 0 ? (
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-card rounded-lg p-4">
+                  <Skeleton className="w-full h-20" />
+                </div>
+              ))
+            ) : filteredListings.length > 0 ? (
               filteredListings.map(renderListingCard)
             ) : (
               <EmptyState
@@ -263,6 +287,8 @@ export const ListingsPage: React.FC = () => {
                   <Label htmlFor="price">Price per kg</Label>
                   <Input
                     id="price"
+                    type="number"
+                    step="0.01"
                     value={newListing.price}
                     onChange={(e) => setNewListing(prev => ({ ...prev, price: e.target.value }))}
                     placeholder="2.50"
@@ -277,6 +303,16 @@ export const ListingsPage: React.FC = () => {
                   type="date"
                   value={newListing.harvestDate}
                   onChange={(e) => setNewListing(prev => ({ ...prev, harvestDate: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <Input
+                  id="category"
+                  value={newListing.category}
+                  onChange={(e) => setNewListing(prev => ({ ...prev, category: e.target.value }))}
+                  placeholder="e.g., Fruits, Vegetables"
                 />
               </div>
 

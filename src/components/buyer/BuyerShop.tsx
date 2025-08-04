@@ -3,59 +3,12 @@ import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { ProductCard } from './ProductCard';
 import { BidModal } from './BidModal';
+import { Skeleton } from '@/components/common/SkeletonLoader';
 import { cn } from '@/lib/utils';
+import { useBuyerProducts } from '@/hooks/useBuyerProducts';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import type { Product } from '@/types';
-
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name: 'Fresh Tomatoes',
-    image: 'https://images.unsplash.com/photo-1518977956812-cd3dbadaaf31?w=400&h=300&fit=crop',
-    price: 2.50,
-    unit: 'kg',
-    location: 'Hargeisa Farm',
-    farmer: 'Ahmed Hassan',
-    farmerId: 'farmer1',
-    freshness: 'fresh' as const,
-    quantity: 25,
-    priceChange: 5.2,
-    organic: false,
-    harvestDate: '2024-08-04',
-    category: 'Vegetables'
-  },
-  {
-    id: '2',
-    name: 'Organic Bananas',
-    image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=300&fit=crop',
-    price: 1.80,
-    unit: 'bunch',
-    location: 'Berbera Valley',
-    farmer: 'Fatima Ali',
-    farmerId: 'farmer2',
-    freshness: 'good' as const,
-    quantity: 40,
-    priceChange: -2.1,
-    organic: true,
-    harvestDate: '2024-08-03',
-    category: 'Fruits'
-  },
-  {
-    id: '3',
-    name: 'Sweet Mangoes',
-    image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&h=300&fit=crop',
-    price: 3.20,
-    unit: 'kg',
-    location: 'Borama Hills',
-    farmer: 'Omar Yusuf',
-    farmerId: 'farmer3',
-    freshness: 'fresh' as const,
-    quantity: 15,
-    priceChange: 8.5,
-    organic: false,
-    harvestDate: '2024-08-04',
-    category: 'Fruits'
-  }
-];
 
 const CATEGORIES = ['All', 'Fruits', 'Vegetables', 'Grains', 'Herbs'];
 
@@ -64,17 +17,40 @@ export const BuyerShop: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  
+  const { data: products = [], isLoading, error } = useBuyerProducts();
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const handleBid = (productId: string) => {
-    const product = MOCK_PRODUCTS.find(p => p.id === productId);
+    const product = products.find(p => p.id === productId);
     if (product) {
       setSelectedProduct(product);
     }
   };
 
-  const handleSubmitBid = (productId: string, bidPrice: number, quantity: number) => {
-    console.log('Bid submitted:', { productId, bidPrice, quantity });
-    // TODO: Submit bid to API
+  const handleSubmitBid = async (productId: string, bidPrice: number, quantity: number) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('bid-submit', {
+        body: {
+          product_id: productId,
+          price: bidPrice,
+          qty_kg: quantity
+        }
+      });
+
+      if (error) throw error;
+      
+      toast.success('Bid submitted successfully!');
+      setSelectedProduct(null);
+    } catch (error) {
+      console.error('Error submitting bid:', error);
+      toast.error('Failed to submit bid. Please try again.');
+    }
   };
 
   return (
@@ -144,18 +120,38 @@ export const BuyerShop: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Fresh Today</h2>
-            <span className="text-sm text-muted-foreground">{MOCK_PRODUCTS.length} items</span>
+            <span className="text-sm text-muted-foreground">{filteredProducts.length} items</span>
           </div>
           
-          <div className="grid gap-4">
-            {MOCK_PRODUCTS.map((product) => (
-              <ProductCard
-                key={product.id}
-                {...product}
-                onBid={handleBid}
-              />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="grid gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-card rounded-lg p-4">
+                  <Skeleton className="w-full h-32" />
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center p-8">
+              <p className="text-destructive">Failed to load products</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-2 text-sm text-primary hover:underline"
+              >
+                Try again
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  {...product}
+                  onBid={handleBid}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
