@@ -8,6 +8,7 @@ import { SplashScreen } from "./pages/auth/SplashScreen";
 import { AuthRoutes } from "./pages/auth/AuthRoutes";
 import { EBeerApp } from "./components/EBeerApp";
 import NotFound from "./pages/NotFound";
+import "@/i18n"; // Initialize i18n
 
 const queryClient = new QueryClient();
 
