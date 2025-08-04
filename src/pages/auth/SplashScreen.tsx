@@ -24,7 +24,7 @@ export const SplashScreen: React.FC = () => {
     <div className="min-h-screen bg-primary flex items-center justify-center">
       <div className="text-center animate-fade-in">
         <img 
-          src="/lovable-uploads/14b60e7c-1be7-4332-8a67-5c8180f91f59.png" 
+          src="/lovable-uploads/e8911162-0401-434a-9d62-592829f50321.png" 
           alt="e-Beer" 
           className="h-16 w-auto mx-auto mb-4"
         />

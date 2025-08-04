@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
       {showLogo && (
         <div className="flex items-center">
           <img 
-            src="/lovable-uploads/14b60e7c-1be7-4332-8a67-5c8180f91f59.png" 
+            src="/lovable-uploads/e8911162-0401-434a-9d62-592829f50321.png" 
             alt="e-Beer" 
             className="h-8 w-auto"
           />
