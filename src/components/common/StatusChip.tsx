@@ -14,7 +14,8 @@ type StatusType =
   | 'good'
   | 'fair'
   | 'sold'
-  | 'paused';
+  | 'paused'
+  | 'delayed';
 
 interface StatusChipProps {
   status: StatusType;
@@ -44,6 +45,8 @@ export const StatusChip: React.FC<StatusChipProps> = ({ status, className }) => 
         return 'text-success bg-success/10 px-2 py-1 rounded-full text-xs font-medium';
       case 'paused':
         return 'text-muted-foreground bg-muted px-2 py-1 rounded-full text-xs font-medium';
+      case 'delayed':
+        return 'text-destructive bg-destructive/10 px-2 py-1 rounded-full text-xs font-medium';
       default:
         return 'status-pending';
     }

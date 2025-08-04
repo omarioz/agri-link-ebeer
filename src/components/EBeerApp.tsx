@@ -3,9 +3,15 @@ import { MobileLayout } from '@/components/layout/MobileLayout';
 import { BottomNav } from '@/components/navigation/BottomNav';
 import { BuyerShop } from '@/components/buyer/BuyerShop';
 import { OrdersPage } from '@/pages/buyer/OrdersPage';
+import { BuyerProfilePage } from '@/pages/buyer/BuyerProfilePage';
 import { FarmerDashboard } from '@/components/farmer/FarmerDashboard';
+import { ListingsPage } from '@/pages/farmer/ListingsPage';
 import { AddListing } from '@/components/farmer/AddListing';
+import { FarmerProfilePage } from '@/pages/farmer/FarmerProfilePage';
 import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
+import { LogisticsPage } from '@/pages/admin/LogisticsPage';
+import { UsersPage } from '@/pages/admin/UsersPage';
+import { AdminProfilePage } from '@/pages/admin/AdminProfilePage';
 
 type UserRole = 'buyer' | 'farmer' | 'admin';
 
@@ -27,7 +33,7 @@ export const EBeerApp: React.FC = () => {
       switch (activeTab) {
         case 'shop': return <BuyerShop />;
         case 'orders': return <OrdersPage />;
-        case 'profile': return <div className="p-4">Profile coming soon...</div>;
+        case 'profile': return <BuyerProfilePage />;
         default: return <BuyerShop />;
       }
     }
@@ -35,9 +41,9 @@ export const EBeerApp: React.FC = () => {
     if (userRole === 'farmer') {
       switch (activeTab) {
         case 'dashboard': return <FarmerDashboard />;
-        case 'listings': return <div className="p-4">Listings coming soon...</div>;
+        case 'listings': return <ListingsPage />;
         case 'add': return <AddListing />;
-        case 'profile': return <div className="p-4">Profile coming soon...</div>;
+        case 'profile': return <FarmerProfilePage />;
         default: return <FarmerDashboard />;
       }
     }
@@ -45,9 +51,9 @@ export const EBeerApp: React.FC = () => {
     // Admin role
     switch (activeTab) {
       case 'analytics': return <AdminAnalytics />;
-      case 'users': return <div className="p-4">User Management coming soon...</div>;
-      case 'logistics': return <div className="p-4">Logistics coming soon...</div>;
-      case 'profile': return <div className="p-4">Profile coming soon...</div>;
+      case 'users': return <UsersPage />;
+      case 'logistics': return <LogisticsPage />;
+      case 'profile': return <AdminProfilePage />;
       default: return <AdminAnalytics />;
     }
   };
