@@ -26,7 +26,7 @@ export const SplashScreen: React.FC = () => {
         <img 
           src="/lovable-uploads/e8911162-0401-434a-9d62-592829f50321.png" 
           alt="e-Beer" 
-          className="h-16 w-auto mx-auto mb-4"
+          className="h-32 w-auto mx-auto mb-4"
         />
         <div className="w-8 h-8 border-4 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mx-auto"></div>
       </div>

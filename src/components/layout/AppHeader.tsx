@@ -45,7 +45,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <img 
               src="/lovable-uploads/e8911162-0401-434a-9d62-592829f50321.png" 
               alt="e-Beer" 
-              className="h-8 w-auto"
+              className="h-16 w-auto"
             />
           </div>
         ) : title ? (
