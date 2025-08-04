@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import { Header } from '@/components/common/Header';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { StatusChip } from '@/components/common/StatusChip';
-import 'leaflet/dist/leaflet.css';
 
 interface Route {
   id: string;
@@ -67,47 +65,40 @@ export const LogisticsPage: React.FC = () => {
       <OfflineBanner />
       <Header title={t('admin.logistics')} showLogo={false} />
 
-      {/* Map Container */}
-      <div className="flex-1 relative">
-        <MapContainer
-          center={[2.0469, 45.3182] as [number, number]}
-          zoom={11}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <>
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            
-            {filteredRoutes.map((route) => (
-              <React.Fragment key={route.id}>
-                <Polyline
-                  positions={route.coordinates}
-                  pathOptions={{
-                    color: route.status === 'in-transit' ? '#00562C' : route.status === 'delayed' ? '#dc2626' : '#16a34a',
-                    weight: 4,
-                    opacity: 0.7
-                  }}
-                />
-                <Marker
-                  position={route.coordinates[route.coordinates.length - 1]}
-                  eventHandlers={{
-                    click: () => setSelectedRoute(route)
-                  }}
+      {/* Map Container - Temporarily replaced due to react-leaflet compatibility issues */}
+      <div className="flex-1 relative bg-muted rounded-lg m-4">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-lg font-semibold text-muted-foreground mb-2">
+              Logistics Map
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Interactive map will be available soon
+            </div>
+            {/* Display route information as cards instead */}
+            <div className="mt-6 space-y-3 max-w-md">
+              {filteredRoutes.map((route) => (
+                <div
+                  key={route.id}
+                  className="bg-background p-4 rounded-lg shadow cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => setSelectedRoute(route)}
                 >
-                  <Popup>
+                  <div className="flex justify-between items-center">
                     <div>
-                      <div style={{ fontWeight: 'bold' }}>{route.driverName}</div>
-                      <div style={{ marginTop: '4px' }}>
-                        <StatusChip status={route.status} />
-                      </div>
+                      <div className="font-medium">{route.driverName}</div>
+                      <div className="text-sm text-muted-foreground">Route {route.id}</div>
                     </div>
-                  </Popup>
-                </Marker>
-              </React.Fragment>
-            ))}
-          </>
-        </MapContainer>
+                    <div className="text-right">
+                      <StatusChip status={route.status} />
+                      <div className="text-xs text-muted-foreground mt-1">{route.eta}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
         {/* Filter Panel */}
         <Sheet>
@@ -194,7 +185,6 @@ export const LogisticsPage: React.FC = () => {
             </DrawerContent>
           </Drawer>
         )}
-      </div>
     </div>
   );
 };
