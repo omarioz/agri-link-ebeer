@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_analytics: {
+        Row: {
+          active_users: number | null
+          deliveries_in_progress: number | null
+          id: string
+          market_growth: number | null
+          total_listings: number | null
+          total_revenue: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_users?: number | null
+          deliveries_in_progress?: number | null
+          id?: string
+          market_growth?: number | null
+          total_listings?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_users?: number | null
+          deliveries_in_progress?: number | null
+          id?: string
+          market_growth?: number | null
+          total_listings?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       bids: {
         Row: {
           buyer_id: string | null
@@ -87,6 +117,44 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farmer_analytics: {
+        Row: {
+          active_listings: number | null
+          farmer_id: string | null
+          id: string
+          monthly_growth: number | null
+          pending_orders: number | null
+          total_earnings: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_listings?: number | null
+          farmer_id?: string | null
+          id?: string
+          monthly_growth?: number | null
+          pending_orders?: number | null
+          total_earnings?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_listings?: number | null
+          farmer_id?: string | null
+          id?: string
+          monthly_growth?: number | null
+          pending_orders?: number | null
+          total_earnings?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farmer_analytics_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -237,39 +305,54 @@ export type Database = {
           created_at: string | null
           description: string | null
           farmer_id: string | null
+          freshness: string | null
           harvest_date: string | null
           id: string
+          location: string | null
           min_price: number | null
+          organic: boolean | null
           photo_url: string | null
+          price_change: number | null
           qty_kg: number | null
           status: string | null
           title: string | null
+          unit: string | null
         }
         Insert: {
           category?: string | null
           created_at?: string | null
           description?: string | null
           farmer_id?: string | null
+          freshness?: string | null
           harvest_date?: string | null
           id?: string
+          location?: string | null
           min_price?: number | null
+          organic?: boolean | null
           photo_url?: string | null
+          price_change?: number | null
           qty_kg?: number | null
           status?: string | null
           title?: string | null
+          unit?: string | null
         }
         Update: {
           category?: string | null
           created_at?: string | null
           description?: string | null
           farmer_id?: string | null
+          freshness?: string | null
           harvest_date?: string | null
           id?: string
+          location?: string | null
           min_price?: number | null
+          organic?: boolean | null
           photo_url?: string | null
+          price_change?: number | null
           qty_kg?: number | null
           status?: string | null
           title?: string | null
+          unit?: string | null
         }
         Relationships: [
           {
@@ -281,30 +364,72 @@ export type Database = {
           },
         ]
       }
+      routes: {
+        Row: {
+          capacity: number | null
+          created_at: string | null
+          current_load: number | null
+          driver_name: string | null
+          id: string
+          location: string | null
+          status: string | null
+          vehicle: string | null
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string | null
+          current_load?: number | null
+          driver_name?: string | null
+          id?: string
+          location?: string | null
+          status?: string | null
+          vehicle?: string | null
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string | null
+          current_load?: number | null
+          driver_name?: string | null
+          id?: string
+          location?: string | null
+          status?: string | null
+          vehicle?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           avatar_url: string | null
           created_at: string | null
           full_name: string | null
           id: string
+          joined_date: string | null
+          phone: string | null
           region: string | null
           role: string
+          status: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
           full_name?: string | null
           id: string
+          joined_date?: string | null
+          phone?: string | null
           region?: string | null
           role: string
+          status?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string | null
           full_name?: string | null
           id?: string
+          joined_date?: string | null
+          phone?: string | null
           region?: string | null
           role?: string
+          status?: string | null
         }
         Relationships: []
       }
@@ -316,6 +441,14 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      update_admin_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_farmer_analytics: {
+        Args: { farmer_id: string }
+        Returns: undefined
       }
     }
     Enums: {
