@@ -1,24 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Header } from '@/components/common/Header';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
-import { EmptyState } from '@/components/common/EmptyState';
+import { StatusChip } from '@/components/common/StatusChip';
 import { useTranslation } from 'react-i18next';
-import { Filter, Phone, Clock, WifiOff, MapPin } from 'lucide-react';
+import { Filter, Phone, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { StatusChip } from '@/components/common/StatusChip';
-import { toast } from 'sonner';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import somalilandMap from '@/assets/maps/somaliland-map.png';
+
+const CITIES = [
+  { name: 'Borama', top: '35%', left: '15%' },
+  { name: 'Hargeisa', top: '50%', left: '40%' },
+  { name: 'Burao', top: '45%', left: '65%' },
+];
 
 interface Route {
   id: string;
   driverName: string;
   driverPhone: string;
   status: 'in-transit' | 'delivered' | 'delayed';
-  coordinates: [number, number][];
   eta: string;
   produce: Array<{
     name: string;
@@ -27,20 +29,12 @@ interface Route {
   }>;
 }
 
-// Somaliland cities
-const cities = [
-  { name: 'Hargeisa', coords: [44.0670, 9.5632] as [number, number] },
-  { name: 'Borama', coords: [43.1809, 9.9432] as [number, number] },
-  { name: 'Burao', coords: [45.5336, 9.5189] as [number, number] },
-];
-
 const mockRoutes: Route[] = [
   {
     id: 'R001',
     driverName: 'Ahmed Hassan',
     driverPhone: '+252 61 234 5678',
     status: 'in-transit',
-    coordinates: [[43.1809, 9.9432], [44.0670, 9.5632], [45.5336, 9.5189]], // Borama → Hargeisa → Burao
     eta: '2h 30m',
     produce: [
       { name: 'Tomatoes', qty: '50kg', farmer: 'Fatima Ali' },
@@ -52,7 +46,6 @@ const mockRoutes: Route[] = [
     driverName: 'Omar Jama',
     driverPhone: '+252 61 345 6789',
     status: 'delivered',
-    coordinates: [[44.0670, 9.5632], [45.5336, 9.5189]], // Hargeisa → Burao
     eta: 'Completed',
     produce: [
       { name: 'Bananas', qty: '40kg', farmer: 'Sahra Yusuf' }
@@ -68,104 +61,8 @@ export const LogisticsPage: React.FC = () => {
     'delivered': true,
     'delayed': true
   });
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [showTokenInput, setShowTokenInput] = useState(true);
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<any>(null);
 
   const filteredRoutes = mockRoutes.filter(route => statusFilters[route.status]);
-
-  const initializeMap = async () => {
-    if (!mapboxToken || !mapContainer.current) return;
-
-    try {
-      // Dynamically import mapbox-gl
-      const mapboxgl = await import('mapbox-gl');
-      await import('mapbox-gl/dist/mapbox-gl.css');
-      
-      mapboxgl.default.accessToken = mapboxToken;
-      
-      map.current = new mapboxgl.default.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [44.3, 9.6], // Center between Somaliland cities
-        zoom: 7
-      });
-
-      // Add navigation controls
-      map.current.addControl(new mapboxgl.default.NavigationControl(), 'top-right');
-
-      map.current.on('load', () => {
-        // Add city markers
-        cities.forEach((city) => {
-          new mapboxgl.default.Marker()
-            .setLngLat(city.coords)
-            .setPopup(new mapboxgl.default.Popup().setHTML(`<strong>${city.name}</strong>`))
-            .addTo(map.current);
-        });
-
-        // Add route lines
-        filteredRoutes.forEach((route, index) => {
-          const routeColor = route.status === 'in-transit' ? '#00562C' : 
-                           route.status === 'delayed' ? '#dc2626' : '#16a34a';
-          
-          map.current.addSource(`route-${route.id}`, {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'LineString',
-                coordinates: route.coordinates
-              }
-            }
-          });
-
-          map.current.addLayer({
-            id: `route-${route.id}`,
-            type: 'line',
-            source: `route-${route.id}`,
-            layout: {
-              'line-join': 'round',
-              'line-cap': 'round'
-            },
-            paint: {
-              'line-color': routeColor,
-              'line-width': 4,
-              'line-opacity': 0.7
-            }
-          });
-
-          // Add click handler for route
-          map.current.on('click', `route-${route.id}`, () => {
-            setSelectedRoute(route);
-          });
-        });
-      });
-
-      setShowTokenInput(false);
-      toast.success('Map loaded successfully!');
-    } catch (error) {
-      console.error('Error loading map:', error);
-      toast.error('Failed to load map. Please check your Mapbox token.');
-    }
-  };
-
-  const handleTokenSubmit = () => {
-    if (!mapboxToken.trim()) {
-      toast.error('Please enter a valid Mapbox token');
-      return;
-    }
-    initializeMap();
-  };
-
-  useEffect(() => {
-    return () => {
-      if (map.current) {
-        map.current.remove();
-      }
-    };
-  }, []);
 
   return (
     <div className="h-screen flex flex-col">
@@ -173,51 +70,55 @@ export const LogisticsPage: React.FC = () => {
       <Header title={t('admin.logistics')} showLogo={false} />
 
       {/* Map Container */}
-      <div className="flex-1 relative">
-        {typeof navigator !== 'undefined' && navigator.onLine === false ? (
-          <EmptyState
-            illustration={<WifiOff className="w-16 h-16" />}
-            title="Offline – Map requires internet"
-            description="Connect to the internet to view the logistics map"
-          />
-        ) : showTokenInput ? (
-          <div className="h-full flex items-center justify-center p-8">
-            <div className="max-w-md w-full space-y-4 bg-background p-6 rounded-lg border">
-              <div className="text-center">
-                <MapPin className="w-12 h-12 mx-auto mb-4 text-primary" />
-                <h3 className="text-lg font-semibold">Mapbox Setup Required</h3>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Enter your Mapbox public token to display the logistics map.
-                  Get your token from{' '}
-                  <a 
-                    href="https://mapbox.com/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    mapbox.com
-                  </a>
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mapbox-token">Mapbox Public Token</Label>
-                <Input
-                  id="mapbox-token"
-                  type="password"
-                  placeholder="pk.eyJ1..."
-                  value={mapboxToken}
-                  onChange={(e) => setMapboxToken(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleTokenSubmit()}
-                />
-              </div>
-              <Button onClick={handleTokenSubmit} className="w-full">
-                Load Map
-              </Button>
+      <div className="relative flex-1 overflow-hidden bg-muted">
+        <img
+          src={somalilandMap}
+          alt="Somaliland map"
+          className="w-full h-full object-cover select-none pointer-events-none"
+        />
+
+        {/* City pins */}
+        {CITIES.map(city => (
+          <button
+            key={city.name}
+            style={{ top: city.top, left: city.left }}
+            className="absolute -translate-x-1/2 -translate-y-full group hover:scale-110 focus:scale-110 transition-transform"
+            aria-label={city.name}
+          >
+            <div className="relative">
+              <span className="block h-4 w-4 bg-primary rounded-full border-2 border-white shadow-lg" />
+              <span className="absolute top-5 left-1/2 -translate-x-1/2 text-xs bg-white/90 px-2 py-1 rounded shadow-md font-medium whitespace-nowrap">
+                {city.name}
+              </span>
             </div>
-          </div>
-        ) : (
-          <div ref={mapContainer} className="h-full w-full" />
-        )}
+          </button>
+        ))}
+
+        {/* Route indicators */}
+        {filteredRoutes.map((route, index) => (
+          <button
+            key={route.id}
+            onClick={() => setSelectedRoute(route)}
+            style={{ 
+              top: `${30 + index * 15}%`, 
+              left: `${20 + index * 20}%` 
+            }}
+            className="absolute -translate-x-1/2 -translate-y-1/2 group hover:scale-110 focus:scale-110 transition-transform"
+            aria-label={`Route ${route.id}`}
+          >
+            <div className="relative">
+              <div className={`h-6 w-6 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-xs font-bold text-white ${
+                route.status === 'in-transit' ? 'bg-blue-500' :
+                route.status === 'delayed' ? 'bg-red-500' : 'bg-green-500'
+              }`}>
+                🚛
+              </div>
+              <div className="absolute top-7 left-1/2 -translate-x-1/2 text-xs bg-white/90 px-2 py-1 rounded shadow-md font-medium whitespace-nowrap">
+                {route.id}
+              </div>
+            </div>
+          </button>
+        ))}
       </div>
 
       {/* Filter Panel */}
@@ -255,17 +156,6 @@ export const LogisticsPage: React.FC = () => {
                 ))}
               </div>
             </div>
-            {!showTokenInput && (
-              <div className="pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowTokenInput(true)}
-                  className="w-full"
-                >
-                  Change Mapbox Token
-                </Button>
-              </div>
-            )}
           </div>
         </SheetContent>
       </Sheet>
