@@ -43,7 +43,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {showLogo ? (
           <div className="flex items-center space-x-2">
             <img 
-              src="/lovable-uploads/14b60e7c-1be7-4332-8a67-5c8180f91f59.png" 
+              src="/lovable-uploads/4f3ee9c0-d956-4ed8-9dce-80c15d1ec734.png" 
               alt="e-Beer" 
               className="h-8 w-auto"
             />
