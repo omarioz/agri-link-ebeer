@@ -12,7 +12,7 @@ export const SplashScreen: React.FC = () => {
         if (isAuthenticated && role) {
           navigate(`/${role}`);
         } else {
-          navigate('/auth');
+          navigate('/auth/login');
         }
       }
     }, 1800);

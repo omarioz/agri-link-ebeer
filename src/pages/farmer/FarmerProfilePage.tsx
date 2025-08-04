@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Header } from '@/components/common/Header';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { useTranslation } from 'react-i18next';
+import { useAuthActions } from '@/hooks/useAuth';
 import { Camera, Edit, Globe, RefreshCw, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 export const FarmerProfilePage: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const { logout, switchRole } = useAuthActions();
   const [profile, setProfile] = useState({
     name: 'Ahmed Hassan',
     email: 'ahmed.hassan@example.com',
@@ -40,15 +42,6 @@ export const FarmerProfilePage: React.FC = () => {
     }
   };
 
-  const handleSwitchRole = () => {
-    // TODO: Implement role switching
-    console.log('Switching role...');
-  };
-
-  const handleLogout = () => {
-    // TODO: Implement logout
-    console.log('Logging out...');
-  };
 
   return (
     <div className="min-h-screen">
@@ -245,11 +238,11 @@ export const FarmerProfilePage: React.FC = () => {
             <CardTitle>Account Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start" onClick={handleSwitchRole}>
+            <Button variant="outline" className="w-full justify-start" onClick={switchRole}>
               <RefreshCw className="w-4 h-4 mr-2" />
-              Switch to Buyer
+              Switch Role
             </Button>
-            <Button variant="destructive" className="w-full justify-start" onClick={handleLogout}>
+            <Button variant="destructive" className="w-full justify-start" onClick={logout}>
               <LogOut className="w-4 h-4 mr-2" />
               {t('auth.logout')}
             </Button>

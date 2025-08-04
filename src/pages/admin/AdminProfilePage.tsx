@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Header } from '@/components/common/Header';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { useTranslation } from 'react-i18next';
+import { useAuthActions } from '@/hooks/useAuth';
 import { Camera, Shield, Globe, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const AdminProfilePage: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const { logout } = useAuthActions();
   const [darkMode, setDarkMode] = useState(false);
   const [twoFA, setTwoFA] = useState(false);
   const [profile, setProfile] = useState({
@@ -188,7 +190,7 @@ export const AdminProfilePage: React.FC = () => {
               </DialogContent>
             </Dialog>
 
-            <Button variant="destructive" className="w-full">
+            <Button variant="destructive" className="w-full" onClick={logout}>
               {t('auth.logout')}
             </Button>
           </CardContent>

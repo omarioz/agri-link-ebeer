@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import localforage from 'localforage';
 import { User, UserRole } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthState {
   user: User | null;
@@ -44,33 +46,58 @@ export const useAuth = () => {
   };
 
   const login = async (email: string, password: string) => {
-    // Mock authentication - replace with actual Firebase/Supabase auth
-    const mockUser: User = {
-      id: '1',
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      name: 'John Farmer',
-      role: 'buyer',
-      region: 'Hargeisa',
-      language: 'en',
-      createdAt: new Date().toISOString(),
+      password,
+    });
+
+    if (error) throw error;
+
+    const user: User = {
+      id: data.user.id,
+      email: data.user.email!,
+      name: data.user.user_metadata.name || email.split('@')[0],
+      role: data.user.user_metadata.role || 'buyer',
+      region: data.user.user_metadata.region || 'Hargeisa',
+      language: data.user.user_metadata.language || 'en',
+      createdAt: data.user.created_at,
     };
 
-    await localforage.setItem('user', mockUser);
+    await localforage.setItem('user', user);
     setAuthState(prev => ({
       ...prev,
-      user: mockUser,
+      user,
       isAuthenticated: true,
     }));
 
-    return mockUser;
+    return user;
   };
 
   const register = async (userData: Omit<User, 'id' | 'createdAt'>) => {
-    // Mock registration
+    const { data, error } = await supabase.auth.signUp({
+      email: userData.email,
+      password: 'tempPassword123', // Will be replaced by actual password from form
+      options: {
+        data: {
+          name: userData.name,
+          role: userData.role,
+          region: userData.region,
+          language: userData.language,
+        },
+        emailRedirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+
+    if (error) throw error;
+
     const newUser: User = {
-      ...userData,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString(),
+      id: data.user!.id,
+      email: userData.email,
+      name: userData.name,
+      role: userData.role,
+      region: userData.region,
+      language: userData.language,
+      createdAt: data.user!.created_at,
     };
 
     await localforage.setItem('user', newUser);
@@ -117,4 +144,22 @@ export const useAuth = () => {
     logout,
     checkAuthStatus,
   };
+};
+
+export const useAuthActions = () => {
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    await localforage.removeItem('user');
+    await localforage.removeItem('selectedRole');
+    navigate('/auth/login', { replace: true });
+  };
+
+  const switchRole = async () => {
+    await localforage.removeItem('selectedRole');
+    navigate('/auth/login', { replace: true });
+  };
+
+  return { logout, switchRole };
 };

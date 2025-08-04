@@ -12,21 +12,18 @@ import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
 import { LogisticsPage } from '@/pages/admin/LogisticsPage';
 import { UsersPage } from '@/pages/admin/UsersPage';
 import { AdminProfilePage } from '@/pages/admin/AdminProfilePage';
+import { useAuth } from '@/hooks/useAuth';
 
 type UserRole = 'buyer' | 'farmer' | 'admin';
 
 export const EBeerApp: React.FC = () => {
-  const [userRole, setUserRole] = useState<UserRole>('buyer');
-  const [activeTab, setActiveTab] = useState('shop');
-
-  // Demo role switcher
-  const switchRole = (role: UserRole) => {
-    setUserRole(role);
-    // Set default tab for each role
-    if (role === 'buyer') setActiveTab('shop');
-    else if (role === 'farmer') setActiveTab('dashboard');
-    else setActiveTab('analytics');
-  };
+  const { role: userRole } = useAuth();
+  const [activeTab, setActiveTab] = useState(() => {
+    // Set default tab based on role
+    if (userRole === 'buyer') return 'shop';
+    if (userRole === 'farmer') return 'dashboard';
+    return 'analytics';
+  });
 
   const renderContent = () => {
     if (userRole === 'buyer') {
@@ -60,25 +57,6 @@ export const EBeerApp: React.FC = () => {
 
   return (
     <MobileLayout>
-      {/* Demo Role Switcher */}
-      <div className="fixed top-4 right-4 z-50 bg-card rounded-lg border border-border shadow-lg">
-        <div className="p-2 flex space-x-1">
-          {(['buyer', 'farmer', 'admin'] as UserRole[]).map((role) => (
-            <button
-              key={role}
-              onClick={() => switchRole(role)}
-              className={`px-2 py-1 text-xs rounded ${
-                userRole === role 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {role}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="min-h-screen">
         {renderContent()}
@@ -88,7 +66,7 @@ export const EBeerApp: React.FC = () => {
       <BottomNav 
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        userRole={userRole}
+        userRole={userRole!}
       />
     </MobileLayout>
   );
