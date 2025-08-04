@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { BottomNav } from '@/components/navigation/BottomNav';
 import { BuyerShop } from '@/components/buyer/BuyerShop';
+import { OrdersPage } from '@/pages/buyer/OrdersPage';
 import { FarmerDashboard } from '@/components/farmer/FarmerDashboard';
 import { AddListing } from '@/components/farmer/AddListing';
 import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
@@ -25,7 +26,7 @@ export const EBeerApp: React.FC = () => {
     if (userRole === 'buyer') {
       switch (activeTab) {
         case 'shop': return <BuyerShop />;
-        case 'orders': return <div className="p-4">Orders coming soon...</div>;
+        case 'orders': return <OrdersPage />;
         case 'profile': return <div className="p-4">Profile coming soon...</div>;
         default: return <BuyerShop />;
       }

@@ -99,6 +99,34 @@
     "good": "Good",
     "fair": "Fair"
   },
+  "orders": {
+    "active": "Active",
+    "completed": "Completed", 
+    "searchPlaceholder": "Search by order ID or produce name...",
+    "loadError": "Couldn't load orders",
+    "emptyActive": "No shipments in progress",
+    "emptyActiveDesc": "Your active orders will appear here",
+    "emptyCompleted": "Place your first order",
+    "emptyCompletedDesc": "Completed orders will show up here",
+    "progress": "Progress",
+    "track": "Track",
+    "invoice": "Invoice",
+    "trackOrder": "Track Order",
+    "estimatedArrival": "Estimated Arrival",
+    "courier": "Courier",
+    "mapUnavailable": "Map unavailable",
+    "invoiceDetails": "Invoice Details",
+    "orderId": "Order ID",
+    "farmer": "Farmer",
+    "region": "Region",
+    "itemDetails": "Item Details",
+    "item": "Item",
+    "qty": "Qty",
+    "subtotal": "Subtotal",
+    "deliveryFee": "Delivery Fee",
+    "thankYou": "Thank you for your order!",
+    "downloadPDF": "Download PDF"
+  },
   "offline": {
     "banner": "You're offline – actions will sync when connected"
   }
