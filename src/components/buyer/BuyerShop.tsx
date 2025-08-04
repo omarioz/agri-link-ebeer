@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { ProductCard } from './ProductCard';
+import { BidModal } from './BidModal';
 import { cn } from '@/lib/utils';
+import type { Product } from '@/types';
 
-const MOCK_PRODUCTS = [
+const MOCK_PRODUCTS: Product[] = [
   {
     id: '1',
     name: 'Fresh Tomatoes',
@@ -13,9 +15,13 @@ const MOCK_PRODUCTS = [
     unit: 'kg',
     location: 'Hargeisa Farm',
     farmer: 'Ahmed Hassan',
+    farmerId: 'farmer1',
     freshness: 'fresh' as const,
     quantity: 25,
-    priceChange: 5.2
+    priceChange: 5.2,
+    organic: false,
+    harvestDate: '2024-08-04',
+    category: 'Vegetables'
   },
   {
     id: '2',
@@ -25,9 +31,13 @@ const MOCK_PRODUCTS = [
     unit: 'bunch',
     location: 'Berbera Valley',
     farmer: 'Fatima Ali',
+    farmerId: 'farmer2',
     freshness: 'good' as const,
     quantity: 40,
-    priceChange: -2.1
+    priceChange: -2.1,
+    organic: true,
+    harvestDate: '2024-08-03',
+    category: 'Fruits'
   },
   {
     id: '3',
@@ -37,9 +47,13 @@ const MOCK_PRODUCTS = [
     unit: 'kg',
     location: 'Borama Hills',
     farmer: 'Omar Yusuf',
+    farmerId: 'farmer3',
     freshness: 'fresh' as const,
     quantity: 15,
-    priceChange: 8.5
+    priceChange: 8.5,
+    organic: false,
+    harvestDate: '2024-08-04',
+    category: 'Fruits'
   }
 ];
 
@@ -49,10 +63,18 @@ export const BuyerShop: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const handleBid = (productId: string) => {
-    console.log('Bidding on product:', productId);
-    // TODO: Open bidding modal
+    const product = MOCK_PRODUCTS.find(p => p.id === productId);
+    if (product) {
+      setSelectedProduct(product);
+    }
+  };
+
+  const handleSubmitBid = (productId: string, bidPrice: number, quantity: number) => {
+    console.log('Bid submitted:', { productId, bidPrice, quantity });
+    // TODO: Submit bid to API
   };
 
   return (
@@ -136,6 +158,14 @@ export const BuyerShop: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Bid Modal */}
+      <BidModal
+        isOpen={!!selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        product={selectedProduct}
+        onSubmitBid={handleSubmitBid}
+      />
     </div>
   );
 };
