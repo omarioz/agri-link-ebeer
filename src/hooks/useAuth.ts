@@ -64,10 +64,13 @@ export const useAuth = () => {
     };
 
     await localforage.setItem('user', user);
+    await localforage.setItem('selectedRole', user.role);
+    
     setAuthState(prev => ({
       ...prev,
       user,
       isAuthenticated: true,
+      role: user.role,
     }));
 
     return user;
