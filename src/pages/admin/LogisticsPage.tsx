@@ -74,38 +74,39 @@ export const LogisticsPage: React.FC = () => {
           zoom={11}
           style={{ height: '100%', width: '100%' }}
         >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          
-          {/* Route Markers */}
-          {filteredRoutes.map((route) => (
-            <React.Fragment key={route.id}>
-              <Polyline
-                positions={route.coordinates}
-                pathOptions={{
-                  color: route.status === 'in-transit' ? '#00562C' : route.status === 'delayed' ? '#dc2626' : '#16a34a',
-                  weight: 4,
-                  opacity: 0.7
-                }}
-              />
-              <Marker
-                position={route.coordinates[route.coordinates.length - 1]}
-                eventHandlers={{
-                  click: () => setSelectedRoute(route)
-                }}
-              >
-                <Popup>
-                  <div>
-                    <div style={{ fontWeight: 'bold' }}>{route.driverName}</div>
-                    <div style={{ marginTop: '4px' }}>
-                      <StatusChip status={route.status} />
+          <>
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            
+            {filteredRoutes.map((route) => (
+              <React.Fragment key={route.id}>
+                <Polyline
+                  positions={route.coordinates}
+                  pathOptions={{
+                    color: route.status === 'in-transit' ? '#00562C' : route.status === 'delayed' ? '#dc2626' : '#16a34a',
+                    weight: 4,
+                    opacity: 0.7
+                  }}
+                />
+                <Marker
+                  position={route.coordinates[route.coordinates.length - 1]}
+                  eventHandlers={{
+                    click: () => setSelectedRoute(route)
+                  }}
+                >
+                  <Popup>
+                    <div>
+                      <div style={{ fontWeight: 'bold' }}>{route.driverName}</div>
+                      <div style={{ marginTop: '4px' }}>
+                        <StatusChip status={route.status} />
+                      </div>
                     </div>
-                  </div>
-                </Popup>
-              </Marker>
-            </React.Fragment>
-          ))}
+                  </Popup>
+                </Marker>
+              </React.Fragment>
+            ))}
+          </>
         </MapContainer>
 
         {/* Filter Panel */}
