@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import { Header } from '@/components/common/Header';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
+import { EmptyState } from '@/components/common/EmptyState';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from 'react-i18next';
-import { Filter, Phone, Clock } from 'lucide-react';
+import { Filter, Phone, Clock, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { StatusChip } from '@/components/common/StatusChip';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 interface Route {
   id: string;
@@ -23,13 +28,29 @@ interface Route {
   }>;
 }
 
+// Fix leaflet default icons
+const pin = new L.Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+// Somaliland cities
+const cities = [
+  { name: 'Hargeisa', coords: [9.5632, 44.0670] as [number, number] },
+  { name: 'Borama', coords: [9.9432, 43.1809] as [number, number] },
+  { name: 'Burao', coords: [9.5189, 45.5336] as [number, number] },
+];
+
 const mockRoutes: Route[] = [
   {
     id: 'R001',
     driverName: 'Ahmed Hassan',
     driverPhone: '+252 61 234 5678',
     status: 'in-transit',
-    coordinates: [[2.0469, 45.3182], [2.0569, 45.3282], [2.0669, 45.3382]],
+    coordinates: [cities[1].coords, cities[0].coords, cities[2].coords], // Borama → Hargeisa → Burao
     eta: '2h 30m',
     produce: [
       { name: 'Tomatoes', qty: '50kg', farmer: 'Fatima Ali' },
@@ -41,7 +62,7 @@ const mockRoutes: Route[] = [
     driverName: 'Omar Jama',
     driverPhone: '+252 61 345 6789',
     status: 'delivered',
-    coordinates: [[2.0369, 45.3082], [2.0469, 45.3182]],
+    coordinates: [cities[0].coords, cities[2].coords], // Hargeisa → Burao
     eta: 'Completed',
     produce: [
       { name: 'Bananas', qty: '40kg', farmer: 'Sahra Yusuf' }
@@ -65,39 +86,55 @@ export const LogisticsPage: React.FC = () => {
       <OfflineBanner />
       <Header title={t('admin.logistics')} showLogo={false} />
 
-      {/* Map Container - Temporarily replaced due to react-leaflet compatibility issues */}
-      <div className="flex-1 relative bg-muted rounded-lg m-4">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-lg font-semibold text-muted-foreground mb-2">
-              Logistics Map
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Interactive map will be available soon
-            </div>
-            {/* Display route information as cards instead */}
-            <div className="mt-6 space-y-3 max-w-md">
-              {filteredRoutes.map((route) => (
-                <div
-                  key={route.id}
-                  className="bg-background p-4 rounded-lg shadow cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => setSelectedRoute(route)}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="font-medium">{route.driverName}</div>
-                      <div className="text-sm text-muted-foreground">Route {route.id}</div>
-                    </div>
-                    <div className="text-right">
-                      <StatusChip status={route.status} />
-                      <div className="text-xs text-muted-foreground mt-1">{route.eta}</div>
-                    </div>
-                  </div>
-                </div>
+      {/* Map Container */}
+      <div className="flex-1 relative">
+        {typeof navigator !== 'undefined' && navigator.onLine === false ? (
+          <EmptyState
+            illustration={<WifiOff className="w-16 h-16" />}
+            title="Offline – Map requires internet"
+            description="Connect to the internet to view the logistics map"
+          />
+        ) : (
+          <Suspense fallback={<Skeleton className="h-full w-full" />}>
+            <MapContainer
+              center={[9.6, 44.3] as [number, number]}
+              zoom={7}
+              className="h-full w-full z-0"
+              scrollWheelZoom={true}
+            >
+              <TileLayer
+                attribution='© OpenStreetMap'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+
+              {/* City markers */}
+              {cities.map((city) => (
+                <Marker key={city.name} position={city.coords} icon={pin}>
+                  <Popup>
+                    <strong>{city.name}</strong>
+                  </Popup>
+                </Marker>
               ))}
-            </div>
-          </div>
-        </div>
+
+              {/* Route polylines */}
+              {filteredRoutes.map((route) => (
+                <Polyline
+                  key={route.id}
+                  positions={route.coordinates}
+                  pathOptions={{
+                    color: route.status === 'in-transit' ? '#00562C' : 
+                           route.status === 'delayed' ? '#dc2626' : '#16a34a',
+                    weight: 4,
+                    opacity: 0.7
+                  }}
+                  eventHandlers={{
+                    click: () => setSelectedRoute(route)
+                  }}
+                />
+              ))}
+            </MapContainer>
+          </Suspense>
+        )}
       </div>
 
         {/* Filter Panel */}
