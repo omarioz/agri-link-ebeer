@@ -1,96 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* e-Beer Design System - Farm-to-consumer marketplace */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    /* e-Beer Brand Colors */
+    --primary: 154 100% 17%; /* Deep green #00562C */
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 154 65% 35%;
+    --primary-dark: 154 100% 12%;
+    
+    /* Warm Canvas Background */
+    --background: 46 73% 96%; /* Warm neutral #F9F7EA */
+    --foreground: 154 25% 15%;
+    
+    /* UI Colors */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --card-foreground: 154 25% 15%;
+    
+    --secondary: 154 20% 88%;
+    --secondary-foreground: 154 25% 15%;
+    
+    --muted: 154 15% 92%;
+    --muted-foreground: 154 15% 45%;
+    
+    --accent: 45 85% 85%;
+    --accent-foreground: 154 25% 15%;
+    
+    --success: 125 65% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 35 90% 55%;
+    --warning-foreground: 0 0% 100%;
+    
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 154 20% 88%;
+    --input: 154 20% 88%;
+    --ring: 154 100% 17%;
+    
+    /* Typography Scale */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    
+    /* Animations */
+    --transition-fast: 150ms ease-in-out;
+    --transition-base: 250ms ease-in-out;
+    --transition-slow: 350ms ease-in-out;
+    
+    --radius: 1rem;
+    
+    /* Mobile optimizations */
+    --mobile-header: 3.5rem;
+    --mobile-nav: 4rem;
+    --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
+    
+    /* e-Beer specific gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(125 65% 55%));
+    --gradient-card: linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted)));
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Dark mode - invert the e-Beer palette */
+    --primary: 154 65% 75%;
+    --primary-foreground: 154 100% 8%;
+    --primary-light: 154 45% 85%;
+    --primary-dark: 154 85% 65%;
+    
+    --background: 154 15% 8%;
+    --foreground: 46 25% 85%;
+    
+    --card: 154 20% 12%;
+    --card-foreground: 46 25% 85%;
+    
+    --secondary: 154 15% 18%;
+    --secondary-foreground: 46 25% 85%;
+    
+    --muted: 154 10% 15%;
+    --muted-foreground: 154 15% 65%;
+    
+    --accent: 45 35% 25%;
+    --accent-foreground: 46 25% 85%;
+    
+    --border: 154 15% 18%;
+    --input: 154 15% 18%;
+    --ring: 154 65% 75%;
   }
 }
 
@@ -100,6 +116,61 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-inter;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Mobile app styling */
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  
+  /* Typography system */
+  .font-inter {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  /* Mobile-first container */
+  .mobile-container {
+    @apply max-w-sm mx-auto min-h-screen bg-background;
+  }
+  
+  /* e-Beer button variants */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground rounded-2xl px-6 py-3 font-medium transition-all duration-200 shadow-md hover:shadow-lg active:scale-95;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground rounded-2xl px-6 py-3 font-medium transition-all duration-200 border border-border hover:bg-secondary/80;
+  }
+  
+  /* Card styles */
+  .card-elevated {
+    @apply bg-card rounded-2xl shadow-md border border-border/50 p-4 transition-all duration-200 hover:shadow-lg;
+  }
+  
+  /* Mobile navigation */
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-card border-t border-border p-2 pb-[calc(0.5rem+var(--mobile-safe-bottom))];
+  }
+  
+  /* Status indicators */
+  .status-success {
+    @apply text-success bg-success/10 px-2 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .status-warning {
+    @apply text-warning bg-warning/10 px-2 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .status-pending {
+    @apply text-muted-foreground bg-muted px-2 py-1 rounded-full text-xs font-medium;
   }
 }
