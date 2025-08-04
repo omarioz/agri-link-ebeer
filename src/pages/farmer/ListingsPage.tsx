@@ -30,7 +30,7 @@ const mockListings: Listing[] = [
   {
     id: '1',
     name: 'Fresh Tomatoes',
-    image: '/api/placeholder/100/100',
+    image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop',
     quantity: '50kg',
     price: '$2.50/kg',
     status: 'active',
@@ -40,7 +40,7 @@ const mockListings: Listing[] = [
   {
     id: '2',
     name: 'Red Onions',
-    image: '/api/placeholder/100/100',
+    image: 'https://images.unsplash.com/photo-1465379944081-7f47de8d74ac?w=100&h=100&fit=crop',
     quantity: '30kg',
     price: '$1.80/kg',
     status: 'paused',
@@ -50,7 +50,7 @@ const mockListings: Listing[] = [
   {
     id: '3',
     name: 'Sweet Bananas',
-    image: '/api/placeholder/100/100',
+    image: 'https://images.unsplash.com/photo-1501286353178-1ec881214838?w=100&h=100&fit=crop',
     quantity: '40kg',
     price: '$3.00/kg',
     status: 'sold',
