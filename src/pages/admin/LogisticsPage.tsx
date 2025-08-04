@@ -97,8 +97,10 @@ export const LogisticsPage: React.FC = () => {
               >
                 <Popup>
                   <div>
-                    <strong>{route.driverName}</strong><br />
-                    <StatusChip status={route.status} />
+                    <div style={{ fontWeight: 'bold' }}>{route.driverName}</div>
+                    <div style={{ marginTop: '4px' }}>
+                      <StatusChip status={route.status} />
+                    </div>
                   </div>
                 </Popup>
               </Marker>
