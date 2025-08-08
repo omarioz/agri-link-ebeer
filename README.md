@@ -1,73 +1,179 @@
-# Welcome to your Lovable project
+# e-Beer Agricultural Marketplace
 
-## Project info
+A farm-to-city marketplace where **farmers list produce** and **buyers place bids**. Built with Django REST API backend and React frontend.
 
-**URL**: https://lovable.dev/projects/8234ef11-7e83-470e-a376-59dbc0325988
+## Architecture
 
-## How can I edit this code?
+- **Backend**: Django + Django REST Framework + PostgreSQL
+- **Frontend**: React + TypeScript + Vite
+- **Deployment**: Single Render service (Django serves React static files)
+- **Authentication**: JWT tokens
+- **Domain**: ebeer.shop
 
-There are several ways of editing your application.
+## Development Setup
 
-**Use Lovable**
+### Prerequisites
+- Python 3.8+
+- Node.js 16+
+- PostgreSQL (for production)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8234ef11-7e83-470e-a376-59dbc0325988) and start prompting.
+### Backend Setup
+```bash
+# Create and activate virtual environment
+python -m venv venv
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux/Mac
 
-Changes made via Lovable will be committed automatically to this repo.
+# Install dependencies
+pip install -r requirements.txt
 
-**Use your preferred IDE**
+# Run migrations
+python manage.py makemigrations
+python manage.py migrate
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+# Create superuser
+python manage.py createsuperuser
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+# Run development server
+python manage.py runserver
+```
 
-Follow these steps:
+### Frontend Setup
+```bash
+# Install dependencies
+npm install
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Run development server
+npm run dev
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Build for production
+npm run build
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Combined Development
+```bash
+# Terminal 1: Django backend
+python manage.py runserver
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Terminal 2: React frontend
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Production Deployment
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Render.com Deployment
+1. Connect your GitHub repository to Render
+2. Configure as **Web Service** (not Static Site)
+3. Build Command: `npm run build && python manage.py collectstatic --noinput`
+4. Start Command: `gunicorn ebeer_api.wsgi:application --bind 0.0.0.0:$PORT`
+5. Environment: Python 3.9+
 
-**Use GitHub Codespaces**
+### Environment Variables
+- `DATABASE_URL`: PostgreSQL connection string
+- `SECRET_KEY`: Django secret key
+- `DEBUG`: Set to False in production
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## API Endpoints
 
-## What technologies are used for this project?
+### Authentication
+- `POST /api/auth/register/` - Register new user
+- `POST /api/auth/login/` - Login with JWT
+- `POST /api/auth/refresh/` - Refresh JWT token
 
-This project is built with:
+### Profiles
+- `GET /api/profile/` - Get current user profile
+- `PATCH /api/profile/` - Update profile
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Produce
+- `GET /api/produce/` - List active produce (public)
+- `POST /api/produce/` - Create produce listing (farmer only)
+- `GET /api/produce/{id}/` - Get produce details
+- `PATCH /api/produce/{id}/` - Update produce (owner only)
+- `DELETE /api/produce/{id}/` - Delete produce (owner only)
+- `POST /api/produce/{id}/close/` - Close listing (owner only)
 
-## How can I deploy this project?
+### Bids
+- `POST /api/bids/` - Place bid (buyer only)
+- `GET /api/bids/` - List user's bids
+- `POST /api/bids/{id}/accept/` - Accept bid (farmer only)
+- `POST /api/bids/{id}/reject/` - Reject bid (farmer only)
 
-Simply open [Lovable](https://lovable.dev/projects/8234ef11-7e83-470e-a376-59dbc0325988) and click on Share -> Publish.
+### Orders
+- `GET /api/orders/` - List user's orders
+- `PATCH /api/orders/{id}/status/` - Update order status (farmer only)
 
-## Can I connect a custom domain to my Lovable project?
+### Payouts
+- `POST /api/payouts/request/` - Request payout (farmer only)
+- `GET /api/payouts/` - List payouts
 
-Yes, you can!
+### Warehouses
+- `GET /api/warehouses/` - List warehouses (read-only)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Todos
+- Full CRUD operations for user tasks
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Business Rules
+
+- **Farmers** can create, update, and delete their produce listings
+- **Buyers** can place bids on active produce
+- **Bids** must meet minimum price requirements
+- **Orders** are created when farmers accept bids
+- **Produce** becomes inactive when a bid is accepted
+- **Payouts** are calculated from delivered orders
+
+## Testing
+
+```bash
+# Run all tests
+python manage.py test
+
+# Run specific test class
+python manage.py test api.tests.CoreFlowTest
+
+# Run with coverage
+pip install coverage
+coverage run --source='.' manage.py test
+coverage report
+```
+
+## Database Schema
+
+### Core Models
+- **User**: Django auth user with role-based profiles
+- **Produce**: Product listings with pricing and location
+- **Bid**: Offers from buyers to farmers
+- **Order**: Transactions created from accepted bids
+- **Payout**: Payment requests from farmers
+- **Warehouse**: Storage locations (read-only)
+
+### Relationships
+- Farmers own produce listings
+- Buyers place bids on produce
+- Orders link buyers to produce
+- Payouts track farmer payments
+
+## React Integration
+
+The Django backend serves the React frontend as static files:
+
+1. **Build Process**: `npm run build` creates `dist/` folder
+2. **Static Serving**: Django serves `dist/` via WhiteNoise
+3. **Routing**: All non-API routes serve `index.html` for React Router
+4. **API Calls**: Frontend makes requests to `/api/*` endpoints
+
+## Custom Domain Setup
+
+1. **DNS Configuration**: Point ebeer.shop to Render's servers
+2. **SSL Certificate**: Automatically provisioned by Render
+3. **Environment**: Update CORS settings for production domain
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make changes with tests
+4. Submit a pull request
+
+## License
+
+[Add your license here]
