@@ -43,20 +43,16 @@ python manage.py runserver
 # Install dependencies
 npm install
 
-# Run development server
-npm run dev
-
-# Build for production
+# Build for production (served by Django)
 npm run build
 ```
 
-### Combined Development
+### Run the App
 ```bash
-# Terminal 1: Django backend
+npm install
+npm run build
+python manage.py migrate
 python manage.py runserver
-
-# Terminal 2: React frontend
-npm run dev
 ```
 
 ## Production Deployment
