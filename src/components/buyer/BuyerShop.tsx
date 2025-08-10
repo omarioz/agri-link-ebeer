@@ -1,61 +1,28 @@
-import React, { useState } from 'react';
-import { Search, Filter, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { ProductCard } from './ProductCard';
 import { BidModal } from './BidModal';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/types';
+import { api } from '@/services/api';
 
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name: 'Fresh Tomatoes',
-    image: 'https://images.unsplash.com/photo-1518977956812-cd3dbadaaf31?w=400&h=300&fit=crop',
-    price: 2.50,
-    unit: 'kg',
-    location: 'Hargeisa Farm',
-    farmer: 'Ahmed Hassan',
-    farmerId: 'farmer1',
-    freshness: 'fresh' as const,
-    quantity: 25,
-    priceChange: 5.2,
-    organic: false,
-    harvestDate: '2024-08-04',
-    category: 'Vegetables'
-  },
-  {
-    id: '2',
-    name: 'Organic Bananas',
-    image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=300&fit=crop',
-    price: 1.80,
-    unit: 'bunch',
-    location: 'Berbera Valley',
-    farmer: 'Fatima Ali',
-    farmerId: 'farmer2',
-    freshness: 'good' as const,
-    quantity: 40,
-    priceChange: -2.1,
-    organic: true,
-    harvestDate: '2024-08-03',
-    category: 'Fruits'
-  },
-  {
-    id: '3',
-    name: 'Sweet Mangoes',
-    image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&h=300&fit=crop',
-    price: 3.20,
-    unit: 'kg',
-    location: 'Borama Hills',
-    farmer: 'Omar Yusuf',
-    farmerId: 'farmer3',
-    freshness: 'fresh' as const,
-    quantity: 15,
-    priceChange: 8.5,
-    organic: false,
-    harvestDate: '2024-08-04',
-    category: 'Fruits'
-  }
-];
+const mapProduceToProduct = (item: any): Product => ({
+  id: item.id,
+  name: item.name,
+  image: item.image_url,
+  price: Number(item.price_per_kg),
+  unit: 'kg',
+  location: item.location,
+  farmer: item.farmer_name,
+  farmerId: item.farmer,
+  freshness: 'fresh',
+  quantity: Number(item.quantity),
+  priceChange: 0,
+  organic: false,
+  harvestDate: item.harvest_date,
+  category: 'General'
+});
 
 const CATEGORIES = ['All', 'Fruits', 'Vegetables', 'Grains', 'Herbs'];
 
@@ -64,9 +31,22 @@ export const BuyerShop: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await api.get('/produce/');
+        setProducts(data.map((item: any) => mapProduceToProduct(item)));
+      } catch (error) {
+        console.error('Failed to load products', error);
+      }
+    };
+    loadProducts();
+  }, []);
 
   const handleBid = (productId: string) => {
-    const product = MOCK_PRODUCTS.find(p => p.id === productId);
+    const product = products.find(p => p.id === productId);
     if (product) {
       setSelectedProduct(product);
     }
@@ -144,11 +124,11 @@ export const BuyerShop: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Fresh Today</h2>
-            <span className="text-sm text-muted-foreground">{MOCK_PRODUCTS.length} items</span>
+            <span className="text-sm text-muted-foreground">{products.length} items</span>
           </div>
           
           <div className="grid gap-4">
-            {MOCK_PRODUCTS.map((product) => (
+            {products.map((product) => (
               <ProductCard
                 key={product.id}
                 {...product}

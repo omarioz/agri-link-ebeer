@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/common/Header';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { api } from '@/services/api';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Listing {
   id: string;
@@ -26,38 +28,16 @@ interface Listing {
   organic: boolean;
 }
 
-const mockListings: Listing[] = [
-  {
-    id: '1',
-    name: 'Fresh Tomatoes',
-    image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop',
-    quantity: '50kg',
-    price: '$2.50/kg',
-    status: 'active',
-    harvestDate: '2024-08-03',
-    organic: true
-  },
-  {
-    id: '2',
-    name: 'Red Onions',
-    image: 'https://images.unsplash.com/photo-1465379944081-7f47de8d74ac?w=100&h=100&fit=crop',
-    quantity: '30kg',
-    price: '$1.80/kg',
-    status: 'paused',
-    harvestDate: '2024-08-02',
-    organic: false
-  },
-  {
-    id: '3',
-    name: 'Sweet Bananas',
-    image: 'https://images.unsplash.com/photo-1501286353178-1ec881214838?w=100&h=100&fit=crop',
-    quantity: '40kg',
-    price: '$3.00/kg',
-    status: 'sold',
-    harvestDate: '2024-08-01',
-    organic: true
-  }
-];
+const mapProduceToListing = (item: any): Listing => ({
+  id: item.id,
+  name: item.name,
+  image: item.image_url,
+  quantity: `${item.quantity}kg`,
+  price: `$${item.price_per_kg}/kg`,
+  status: item.is_active ? 'active' : 'paused',
+  harvestDate: item.harvest_date,
+  organic: false
+});
 
 export const ListingsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -72,8 +52,23 @@ export const ListingsPage: React.FC = () => {
     organic: false,
     description: ''
   });
+  const [listings, setListings] = useState<Listing[]>([]);
+  const { user } = useAuth();
 
-  const filteredListings = mockListings.filter(listing => {
+  useEffect(() => {
+    const loadListings = async () => {
+      try {
+        const data = await api.get('/produce/');
+        const mapped = data.map((item: any) => mapProduceToListing(item));
+        setListings(mapped.filter((l: any, idx: number) => data[idx].farmer === user?.id));
+      } catch (error) {
+        console.error('Failed to load listings', error);
+      }
+    };
+    loadListings();
+  }, [user]);
+
+  const filteredListings = listings.filter(listing => {
     if (activeTab === 'all') return true;
     return listing.status === activeTab;
   });
@@ -93,8 +88,24 @@ export const ListingsPage: React.FC = () => {
     console.log(`${action} listing ${id}`);
   };
 
-  const handleCreateListing = () => {
-    console.log('Creating listing:', newListing);
+  const handleCreateListing = async () => {
+    try {
+      await api.post('/produce/', {
+        name: newListing.name,
+        quantity: Number(newListing.quantity),
+        price_per_kg: Number(newListing.price),
+        min_price: Number(newListing.price),
+        harvest_date: newListing.harvestDate,
+        image_url: '',
+        location: 'Hargeisa',
+        is_active: true,
+      });
+      const data = await api.get('/produce/');
+      const mapped = data.map((item: any) => mapProduceToListing(item));
+      setListings(mapped.filter((l: any, idx: number) => data[idx].farmer === user?.id));
+    } catch (error) {
+      console.error('Failed to create listing', error);
+    }
     setShowNewListingDialog(false);
     setNewListing({
       name: '',

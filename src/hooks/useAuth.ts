@@ -2,13 +2,22 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import localforage from 'localforage';
 import { User, UserRole } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
+import { api, setAccessToken } from '@/services/api';
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   role: UserRole | null;
+}
+
+interface RegisterData {
+  email: string;
+  password: string;
+  name: string;
+  role: UserRole;
+  region: string;
+  language: string;
 }
 
 export const useAuth = () => {
@@ -27,7 +36,7 @@ export const useAuth = () => {
     try {
       const user = await localforage.getItem<User>('user');
       const role = await localforage.getItem<UserRole>('selectedRole');
-      
+
       setAuthState({
         user,
         isAuthenticated: !!user,
@@ -46,26 +55,22 @@ export const useAuth = () => {
   };
 
   const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
+    await api.login(email, password);
+    const profile = await api.get('/profile/1/');
 
     const user: User = {
-      id: data.user.id,
-      email: data.user.email!,
-      name: data.user.user_metadata.name || email.split('@')[0],
-      role: data.user.user_metadata.role || 'buyer',
-      region: data.user.user_metadata.region || 'Hargeisa',
-      language: data.user.user_metadata.language || 'en',
-      createdAt: data.user.created_at,
+      id: profile.id,
+      email: profile.email || email,
+      name: profile.name || email.split('@')[0],
+      role: (profile.role as UserRole) || 'buyer',
+      region: 'Hargeisa',
+      language: 'en',
+      createdAt: new Date().toISOString(),
     };
 
     await localforage.setItem('user', user);
     await localforage.setItem('selectedRole', user.role);
-    
+
     setAuthState(prev => ({
       ...prev,
       user,
@@ -76,41 +81,17 @@ export const useAuth = () => {
     return user;
   };
 
-  const register = async (userData: Omit<User, 'id' | 'createdAt'>) => {
-    const { data, error } = await supabase.auth.signUp({
+  const register = async (userData: RegisterData) => {
+    await api.register({
+      username: userData.email,
       email: userData.email,
-      password: 'tempPassword123', // Will be replaced by actual password from form
-      options: {
-        data: {
-          name: userData.name,
-          role: userData.role,
-          region: userData.region,
-          language: userData.language,
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback`
-      }
+      password: userData.password,
+      password2: userData.password,
+      role: userData.role,
+      name: userData.name,
     });
 
-    if (error) throw error;
-
-    const newUser: User = {
-      id: data.user!.id,
-      email: userData.email,
-      name: userData.name,
-      role: userData.role,
-      region: userData.region,
-      language: userData.language,
-      createdAt: data.user!.created_at,
-    };
-
-    await localforage.setItem('user', newUser);
-    setAuthState(prev => ({
-      ...prev,
-      user: newUser,
-      isAuthenticated: true,
-    }));
-
-    return newUser;
+    return login(userData.email, userData.password);
   };
 
   const setRole = async (role: UserRole) => {
@@ -123,13 +104,13 @@ export const useAuth = () => {
 
   const switchRole = async (newRole: UserRole) => {
     await localforage.setItem('selectedRole', newRole);
-    // Force page reload to reset app state
     window.location.reload();
   };
 
   const logout = async () => {
     await localforage.removeItem('user');
     await localforage.removeItem('selectedRole');
+    setAccessToken(null);
     setAuthState({
       user: null,
       isAuthenticated: false,
@@ -153,9 +134,9 @@ export const useAuthActions = () => {
   const navigate = useNavigate();
 
   const logout = async () => {
-    await supabase.auth.signOut();
     await localforage.removeItem('user');
     await localforage.removeItem('selectedRole');
+    setAccessToken(null);
     navigate('/auth/login', { replace: true });
   };
 
