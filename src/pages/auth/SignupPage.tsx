@@ -10,7 +10,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types';
 import { toast } from 'sonner';
 import { User, ShoppingCart } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface SignupForm {
   email: string;
@@ -25,7 +24,7 @@ export const SignupPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const navigate = useNavigate();
-  const { register: registerUser, setRole } = useAuth();
+  const { register: registerUser } = useAuth();
   
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<SignupForm>({
     defaultValues: {
@@ -42,34 +41,14 @@ export const SignupPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // First register with Supabase auth directly
-      const { data: authData, error } = await supabase.auth.signUp({
+      await registerUser({
         email: data.email,
         password: data.password,
-        options: {
-          data: {
-            name: data.name,
-            role: selectedRole,
-            region: data.region,
-            language: data.language,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
-
-      if (error) throw error;
-
-      const user = {
-        id: authData.user!.id,
-        email: data.email,
         name: data.name,
-        role: selectedRole,
         region: data.region,
         language: data.language,
-        createdAt: authData.user!.created_at,
-      };
-      
-      await setRole(selectedRole);
+        role: selectedRole,
+      });
       toast.success('Account created successfully!');
       navigate(`/${selectedRole}`, { replace: true });
     } catch (error: any) {
