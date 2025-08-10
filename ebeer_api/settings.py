@@ -14,7 +14,19 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-FRONTEND_DIST = BASE_DIR.parent / "dist"
+
+
+def find_frontend_dist(start: Path) -> Path | None:
+    for root in [start, start.parent, start.parent.parent, start.parent.parent.parent]:
+        for cand in root.rglob("index.html"):
+            if (cand.parent / "assets").is_dir():
+                return cand.parent
+    return None
+
+
+FRONTEND_DIST = find_frontend_dist(BASE_DIR)
+if FRONTEND_DIST is None:
+    print("⚠️ FRONTEND_DIST not found; run `npm run build` to generate React production build.")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -61,7 +73,7 @@ ROOT_URLCONF = 'ebeer_api.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [FRONTEND_DIST],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -123,9 +135,30 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [
-    FRONTEND_DIST / "assets",
-]
+STATICFILES_DIRS = [p for p in [FRONTEND_DIST] if p and p.exists()]
+TEMPLATES[0]["DIRS"] = [p for p in [FRONTEND_DIST] if p and p.exists()]
+
+try:
+    import pkg_resources  # noqa: F401
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+except ImportError:
+    import sys
+    import types
+
+    pkg_resources = types.ModuleType("pkg_resources")
+
+    class DistributionNotFound(Exception):
+        pass
+
+    def get_distribution(_: str):  # type: ignore[unused-ignore]
+        raise DistributionNotFound
+
+    pkg_resources.DistributionNotFound = DistributionNotFound  # type: ignore[attr-defined]
+    pkg_resources.get_distribution = get_distribution  # type: ignore[attr-defined]
+    sys.modules["pkg_resources"] = pkg_resources
+
+    # Fallback to default storage to prevent crashes when setuptools/pkg_resources is unavailable
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [

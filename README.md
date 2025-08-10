@@ -52,8 +52,11 @@ npm run build
 npm install
 npm run build
 python manage.py migrate
+python manage.py collectstatic --noinput
 python manage.py runserver
 ```
+
+Visit http://127.0.0.1:8000/ — assets should load from `/static/*`, the SPA should render, and the API is available under `/api/*`.
 
 ## Production Deployment
 
